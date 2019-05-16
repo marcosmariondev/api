@@ -39,16 +39,16 @@ class ToolController extends Controller
     public function store(Request $request)
     {
 
-        $request->validate([
-            'title'=> 'required|string',
-            'description'=> 'required|string',
-            'link'=> 'required|url',
-            'tags'=> 'sometimes|array'
-        ]);
-
         DB::beginTransaction();
 
         try{
+
+            $request->validate([
+                'title'=> 'required|string',
+                'description'=> 'required|string',
+                'link'=> 'required|url',
+                'tags'=> 'sometimes|array'
+            ]);
 
             $tool = Tool::create([
                 'title'=> $request->title,
@@ -72,11 +72,17 @@ class ToolController extends Controller
 
             return new ToolResource($tool);
 
-        }catch (\Exception $e) {
+        }catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json([
+                'message'=> $e->getMessage(),
+                'erros' =>  $e->errors()
+            ],422);
 
+        }catch (\Exception $e) {
             DB::rollback();
             return response()->json([
-                'error'=> $e->getMessage()
+                'message'=> $e->getMessage(),
+                'erros' =>  $e->errors()
             ],500);
 
         }

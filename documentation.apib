@@ -1,5 +1,5 @@
 FORMAT: 1A
-HOST: https://api.example.com
+HOST: localhost:3000
 
 # Blueprint Docs
 
@@ -15,12 +15,6 @@ Api para o teste da bossabox.com
 ```
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNnZoQW8zRkc3dDEiLCJuYW1lIjoiSm9obiBEb2UiLCJpYXQiOjE0NzA1OTg5NzIsImV4cCI6MTQ3MDY4NTM3Mn0.ltA9zZmJKszBJuuV7pTWtY7LzLXrRUfebJDhy_jGMeM
 ```
-
-## Filtros
-
-Essa API pode filtrar as coleções retornadas com base nos parâmetros de consulta fornecidos. Praticamente qualquer campo de modelo pode ser usado como um filtro.
-
-Por exemplo, ao solicitar uma lista de ferramentas, você pode querer limitá-los por tag. Isso poderia ser feito com um pedido como `GET / tools?tag=none`.
 
 ## HTTP Methods
 
@@ -45,69 +39,15 @@ Essa API usa códigos de status HTTP para se comunicar com a API do consumidor.
 + `405 Method Not Allowed`
 + `406 Not Acceptable`
 
-### Error response
-
-Essa API retorna códigos de erro legíveis por máquina e mensagens de erro legíveis em resposta quando um erro é encontrado.
-
-#### Example
-
-##### Validation Error
-
-```js
-{
-    "statusCode": 400,
-    "error": "Bad Request",
-    "message": "Invalid query parameters",
-    "data": {
-        "code": 10003,
-        "validation": {
-            "details":[
-                {
-                    "message": "\"name\" is required",
-                    "path": "name",
-                    "type": "any.required",
-                    "context": {
-                        "key": "name"
-                    }
-                },{
-                    "message": "\"email\" must be a valid email",
-                    "path": "email",
-                    "type": "string.email",
-                    "context": {
-                        "value": "foo",
-                        "key": "email"
-                    }
-                }
-            ],
-            "source": "query",
-            "keys": [ "name","email" ]
-        }
-    }
-}
-```
-
-##### Generic Error
-
-```js
-{
-    "statusCode": 403,
-    "error": "Forbidden",
-    "message": "Your account is suspended and is not permitted to access this feature",
-    "data": {
-        "code": 13003
-    }
-}
-```
-
 # Group Autenticação
 
 ## login [/api/login]
 
-Access tokens are required to access nearly all endpoints of this API.
+Os tokens de acesso são necessários para acessar quase todos os endpoints dessa API.
 
-### Retrieve a token [POST]
+### Retorna um token JWT [POST]
 
-Allows to retrieve a valid JSON Web Token for username and password.
+Permite recuperar o JSON Web Token válido para nome de usuário e senha.
 
 **Endpoint information**
 
@@ -127,129 +67,128 @@ Allows to retrieve a valid JSON Web Token for username and password.
 
 ## Cadastro do usuário [/api/register]
 
-### Register a new user [POST]
+### Criar um novo usuário [POST]
 
-Creates a new user account.
+Criar um novo usuário.
 
-+ Provided email address MUST be unique.
-+ Passwords MUST have at least six characters.
-+ Passwords MUST NOT contain the user name or parts of the user’s full name, such as his first name.
-+ Passwords MUST use at least three of the four available character types: lowercase letters, uppercase letters, numbers, and symbols.
++ Email precisa ser único.
++ Senha precisa ter pelo menos 3 caracteres.
 
-After successful registration a confirmation email MUST be sent to provided address.
 
-**Endpoint information**
+**Informações do Endpoint**
 
 |                         |     |
 |-------------------------|-----|
 | Requires authentication | No  |
 
-**Error codes**
-
-|       |         |                                             |
-|-------|---------| ------------------------------------------- |
-| `400` | `4001` | Password doesn't match password guidelines  |
-| `400` | `3001` | User already exists                         |
-
 + Request (application/json)
     + Attributes
+        + name: `Marcos Marion` (string, required) - Seu nome.
         + email: `john.doe@mail.com` (string, required) - E-mail address.
         + password: `QXR0mi38a2` (string, required) - User password.
 
 + Response 201
 
+## Group Ferramentas
 
-# Group Ferramentas
+Coleção de ferramentas
 
-## Retorna todas as ferramenta [/api/tools]
+## Ferramentas [/tools{?tag}]
 
-### Retorna todas as ferramentas [GET]
+A Question object has the following attributes
 
-Retrieves the details of an existing user.
++ Parameters
+    + tag: node (optional, string) - ID da ferramenta
 
-|                         |     |
-|-------------------------|-----|
-| Requires authentication | Yes |
-| Has restricted scope    | No  |
+### Retorna uma coleção de ferramentas [GET]
 
-**Error codes**
-
-|       |         |                               |
-|-------|---------| ----------------------------- |
-| `400` | `1000`  | Referenced resource not found |
-
-+ Request
++ Request (application/json)
     + Headers
 
             Authorization: JWT <token>
 
 + Response 200 (application/json)
-    + Attributes (User)
 
-+ Response 404
+        [
+            {
+                "id": 12,
+                "title": "hotel",
+                "description": "Local app manager. Start apps within your browser, developer tool with local .localhost domain and https out of the box.",
+                "link": "https://github.com/typicode/hotel",
+                "tags": [
+                    "node",
+                    "organizing",
+                    "webapps",
+                    "domain",
+                    "developer",
+                    "https",
+                    "proxy"
+                ]
+            },
+            {
+                "id": 15,
+                "title": "hotel",
+                "description": "Local app manager. Start apps within your browser, developer tool with local .localhost domain and https out of the box.",
+                "link": "https://github.com/typicode/hotel",
+                "tags": [
+                    "node",
+                    "organizing",
+                    "webapps",
+                    "domain",
+                    "developer",
+                    "https",
+                    "proxy",
+                    "adasd"
+                ]
+            }
+        ]
 
+## Ferramentas Collection [/tools]
 
-## Cadastra um cidadao [/api/tools]
-### Set user avatar [POST]
+### Criar uma nova ferramenta [POST]
 
-Sets user avatar.
+Você pode criar sua própria ferramenta usando esta ação.
 
-Either upload the raw binary ( **media** parameter) of the file, or its base64-encoded contents ( **media_data** parameter). Use raw binary when possible, because base64 encoding results in larger file sizes.
++ title (string) - Título
++ link (string) - Link
++ description (string) - Descrição da ferramenta
++ tags (array[string]) - Coleção de tags.
 
-**Endpoint information**
++ Request (application/json)
 
-|                         |     |
-|-------------------------|-----|
-| Requires authentication | Yes |
-| Has restricted scope    | No  |
-
-**Error codes**
-
-|       |         |                       |
-|-------|---------| --------------------- |
-| `400` | `2001`  | File is too large     |
-| `400` | `2002`  | Unsupported file type |
-
-+ Request (multipart/form-data)
     + Headers
 
-            Authorization: JWT <token>
+             Authorization: JWT <token>
 
-+ Response 200
-    + Attributes
-        + avatar: `https://...` (string) - Public download URL
+    + Body
 
-## Deleta um cidadao [/api/tools]
+                {
+                    "title": "hotel",
+                    "description": "1232173213",
+                    "link": "https://www.github.com/typicode/hotel",
+                    "tags": [
+                        "adasd",
+                        "marion",
+                        "asdhuahsudsa"
+                    ]
+                }
 
-### Deleta uma ferramenta [DELETE]
++ Response 201 (application/json)
 
-Restores user avatar to the default one.
-
-**Endpoint information**
-
-|                         |     |
-|-------------------------|-----|
-| Requires authentication | Yes |
-| Has restricted scope    | No  |
-
-+ Request
     + Headers
 
-            Authorization: JWT <token>
+            Location: /tools
 
-+ Response 204
+    + Body
 
-
-# Data Structures
-
-## Resource (object)
-+ id: `a6vhAo3FG7t1` (string, fixed) - Short non-sequential url-friendly unique id.
-+ createdAt: `2016-07-01T15:11:09.553Z` (string) - ISO Date/time string. When this resource was created.
-+ updatedAt: `2016-07-01T15:11:09.553Z` (string) - ISO Date/time string. When this resource was last updated.
-
-## User (Resource)
-+ email: `john.doe@mail.com` (string, required) - Login. Unique email address of the user.
-+ facebookId: `888047057953991` (number, optional, nullable) - Facebook ID of the user if user account is linked to the Facebook account.
-+ name: `John` (string, optional, nullable) - First name of the user.
-+ surname: `Doe` (string, optional, nullable) - Last name of the user.
-+ avatar (string, optional, nullable) - URL to user avatar.
+            {
+                "id": 32,
+                "title": "hotel",
+                "description": "1232173213",
+                "link": "https://www.github.com/typicode/hotel",
+                "tags": [
+                    "adasd",
+                    "marion",
+                    "asdhuahsudsa"
+                ]
+            }

@@ -8,69 +8,64 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
-class AuthController  extends Controller
+class AuthController extends Controller
 {
 
-    public function register(Request $request){
-
+    public function register(Request $request)
+    {
         $request->validate([
-            'name'=> 'required|string',
-            'email'=> 'required|string|email||unique:users',
-            'password'=> 'required|string|min:3'
+            'name' => 'required|string',
+            'email' => 'required|string|email||unique:users',
+            'password' => 'required|string|min:3'
         ]);
 
         $user = new User([
-            'name'=> $request->name,
-            'email'=>$request->email,
-            'password'=> bcrypt($request->password)
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => bcrypt($request->password)
         ]);
         $user->save();
 
-        return response()->json([
-            'message'=> 'Usuário criado com sucesso;'
-        ], 201);
+        return response()->noContent(201);
     }
 
 
-
-    public function login(Request $request){
-
+    public function login(Request $request)
+    {
         $request->validate([
-            'email'=> 'required|string|email',
-            'password'=> 'required|string|min:3',
-            'remember_me'=> 'sometimes|boolean'
+            'email' => 'required|string|email',
+            'password' => 'required|string|min:3',
+            'remember_me' => 'sometimes|boolean'
         ]);
 
         $userCredentials = request(['email', 'password']);
 
-        if(!Auth::attempt($userCredentials))
+        if (!Auth::attempt($userCredentials))
             return response()->json([
-                'message'=> 'Unauthorized'
+                'message' => 'Unauthorized'
             ], 401);
 
         $user = $request->user();
         $tokenResult = $user->createToken('User Personal Access Token');
         $token = $tokenResult->token;
 
-        if($request->remember_me){
+        if ($request->remember_me) {
             $token->expires_at = Carbon::now()->addWeeks(2);
         }
+
         $token->save();
 
         return response()->json([
-            'access_token' => $tokenResult->accessToken,
-            'token_type' => 'Bearer',
-            'expires_at' => Carbon::parse(
-                $tokenResult->token->expires_at
-            )->toDateString()
+            'token' => $tokenResult->accessToken
         ]);
 
     }
 
-    public function logout(Request $request){
+    public function logout(Request $request)
+    {
         $request->user()->token()->revoke();
         return response()->json([
-            'message'=> 'hey you have been logged out DUDE!'
+            'message' => 'hey you have been logged out DUDE!'
         ]);
     }
 
