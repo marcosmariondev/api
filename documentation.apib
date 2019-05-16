@@ -1,0 +1,255 @@
+FORMAT: 1A
+HOST: https://api.example.com
+
+# Blueprint Docs
+
+Api para o teste da bossabox.com
+
+## Autenticação
+
++ Esta API usa [JWT] (http://jwt.io/) para autenticação,
++ Token DEVE ser fornecido no cabeçalho `Authorization`,
++ Token DEVE ser fornecido para cada solicitação que requer autenticação,
+
+### Exemplo de Cabeçalho
+```
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNnZoQW8zRkc3dDEiLCJuYW1lIjoiSm9obiBEb2UiLCJpYXQiOjE0NzA1OTg5NzIsImV4cCI6MTQ3MDY4NTM3Mn0.ltA9zZmJKszBJuuV7pTWtY7LzLXrRUfebJDhy_jGMeM
+```
+
+## Filtros
+
+Essa API pode filtrar as coleções retornadas com base nos parâmetros de consulta fornecidos. Praticamente qualquer campo de modelo pode ser usado como um filtro.
+
+Por exemplo, ao solicitar uma lista de ferramentas, você pode querer limitá-los por tag. Isso poderia ser feito com um pedido como `GET / tools?tag=none`.
+
+## HTTP Methods
+
+Esta API usa verbos HTTP (métodos) da seguinte forma:
+
++ `GET` - *Leitura/Listagem*
++ `POST` - *Criação*
++ `PUT` - *Atualização*
++ `DELETE` - *Deleção*
+
+## Códigos de status e erros
+
+Essa API usa códigos de status HTTP para se comunicar com a API do consumidor.
+
++ `200 OK`
++ `201 Created`
++ `204 No Content`
++ `400 Bad Request`
++ `401 Unauthorized`
++ `403 Forbidden`
++ `404 Not Found`
++ `405 Method Not Allowed`
++ `406 Not Acceptable`
+
+### Error response
+
+Essa API retorna códigos de erro legíveis por máquina e mensagens de erro legíveis em resposta quando um erro é encontrado.
+
+#### Example
+
+##### Validation Error
+
+```js
+{
+    "statusCode": 400,
+    "error": "Bad Request",
+    "message": "Invalid query parameters",
+    "data": {
+        "code": 10003,
+        "validation": {
+            "details":[
+                {
+                    "message": "\"name\" is required",
+                    "path": "name",
+                    "type": "any.required",
+                    "context": {
+                        "key": "name"
+                    }
+                },{
+                    "message": "\"email\" must be a valid email",
+                    "path": "email",
+                    "type": "string.email",
+                    "context": {
+                        "value": "foo",
+                        "key": "email"
+                    }
+                }
+            ],
+            "source": "query",
+            "keys": [ "name","email" ]
+        }
+    }
+}
+```
+
+##### Generic Error
+
+```js
+{
+    "statusCode": 403,
+    "error": "Forbidden",
+    "message": "Your account is suspended and is not permitted to access this feature",
+    "data": {
+        "code": 13003
+    }
+}
+```
+
+# Group Autenticação
+
+## login [/api/login]
+
+Access tokens are required to access nearly all endpoints of this API.
+
+### Retrieve a token [POST]
+
+Allows to retrieve a valid JSON Web Token for username and password.
+
+**Endpoint information**
+
+|                         |     |
+|-------------------------|-----|
+| Requires authentication | No  |
+| Has restricted scope    | No  |
+
++ Request (application/json)
+    + Attributes
+        + login: `john.doe@mail.com` (string, required) - User email address
+        + password: `QXR0mi38a2` (string, required) - User password
+
++ Response 200 (application/json)
+    + Attributes
+        + token: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....` (string) - JSON Web Token.
+
+## Cadastro do usuário [/api/register]
+
+### Register a new user [POST]
+
+Creates a new user account.
+
++ Provided email address MUST be unique.
++ Passwords MUST have at least six characters.
++ Passwords MUST NOT contain the user name or parts of the user’s full name, such as his first name.
++ Passwords MUST use at least three of the four available character types: lowercase letters, uppercase letters, numbers, and symbols.
+
+After successful registration a confirmation email MUST be sent to provided address.
+
+**Endpoint information**
+
+|                         |     |
+|-------------------------|-----|
+| Requires authentication | No  |
+
+**Error codes**
+
+|       |         |                                             |
+|-------|---------| ------------------------------------------- |
+| `400` | `4001` | Password doesn't match password guidelines  |
+| `400` | `3001` | User already exists                         |
+
++ Request (application/json)
+    + Attributes
+        + email: `john.doe@mail.com` (string, required) - E-mail address.
+        + password: `QXR0mi38a2` (string, required) - User password.
+
++ Response 201
+
+
+# Group Ferramentas
+
+## Retorna todas as ferramenta [/api/tools]
+
+### Retorna todas as ferramentas [GET]
+
+Retrieves the details of an existing user.
+
+|                         |     |
+|-------------------------|-----|
+| Requires authentication | Yes |
+| Has restricted scope    | No  |
+
+**Error codes**
+
+|       |         |                               |
+|-------|---------| ----------------------------- |
+| `400` | `1000`  | Referenced resource not found |
+
++ Request
+    + Headers
+
+            Authorization: JWT <token>
+
++ Response 200 (application/json)
+    + Attributes (User)
+
++ Response 404
+
+
+## Cadastra um cidadao [/api/tools]
+### Set user avatar [POST]
+
+Sets user avatar.
+
+Either upload the raw binary ( **media** parameter) of the file, or its base64-encoded contents ( **media_data** parameter). Use raw binary when possible, because base64 encoding results in larger file sizes.
+
+**Endpoint information**
+
+|                         |     |
+|-------------------------|-----|
+| Requires authentication | Yes |
+| Has restricted scope    | No  |
+
+**Error codes**
+
+|       |         |                       |
+|-------|---------| --------------------- |
+| `400` | `2001`  | File is too large     |
+| `400` | `2002`  | Unsupported file type |
+
++ Request (multipart/form-data)
+    + Headers
+
+            Authorization: JWT <token>
+
++ Response 200
+    + Attributes
+        + avatar: `https://...` (string) - Public download URL
+
+## Deleta um cidadao [/api/tools]
+
+### Deleta uma ferramenta [DELETE]
+
+Restores user avatar to the default one.
+
+**Endpoint information**
+
+|                         |     |
+|-------------------------|-----|
+| Requires authentication | Yes |
+| Has restricted scope    | No  |
+
++ Request
+    + Headers
+
+            Authorization: JWT <token>
+
++ Response 204
+
+
+# Data Structures
+
+## Resource (object)
++ id: `a6vhAo3FG7t1` (string, fixed) - Short non-sequential url-friendly unique id.
++ createdAt: `2016-07-01T15:11:09.553Z` (string) - ISO Date/time string. When this resource was created.
++ updatedAt: `2016-07-01T15:11:09.553Z` (string) - ISO Date/time string. When this resource was last updated.
+
+## User (Resource)
++ email: `john.doe@mail.com` (string, required) - Login. Unique email address of the user.
++ facebookId: `888047057953991` (number, optional, nullable) - Facebook ID of the user if user account is linked to the Facebook account.
++ name: `John` (string, optional, nullable) - First name of the user.
++ surname: `Doe` (string, optional, nullable) - Last name of the user.
++ avatar (string, optional, nullable) - URL to user avatar.
