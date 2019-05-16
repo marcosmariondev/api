@@ -73,7 +73,7 @@
 
                 <div class="links">
                     <a href="/telescope">Api Log</a>
-                    <a href="/doc">Documentação</a>
+                    <a href="/docs">Documentação</a>
                 </div>
             </div>
         </div>
